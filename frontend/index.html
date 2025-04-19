@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang='en'>
+    <head> 
+        <title>Two Player Dice Game</title>
+        <style>
+
+        </style>
+        </head>
+        <body>
+            <table>
+                <tr>
+                    <th>Game</th>
+                    <th>Dice</th>
+                </tr>
+                <tr>
+                    <td>
+                        <!--- game status-->
+                        <table>
+                            <tr>
+                                <td>total score player 1</td>
+                                <td><span id="rollTotal_1"></span></td>
+                            </tr>
+                            <tr></tr>
+                                <td>total score player 2</td>
+                                <td><span id="rollTotal_2"></span></td>
+                            </tr>
+                            <tr></tr>
+                                <td>number of rolls</td>
+                                <td><span id="rollCount"></span></td>
+                            </tr>
+                            <tr></tr>
+                                <td>target score</td>
+                                <td><span id="totalTarget"></span></td>
+                            </tr>
+                            <tr></tr>
+                                <td>status
+
+                                    <button id="newGame">New Game</button>
+                                </td>
+                                <td><span id="gameStatus"></span></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>
+                        <!-- dice rolling-->
+                         <table>
+                            <tr>
+                                <td>
+                                    <span id="rollValue">
+
+                                    </span>
+                                    <button id="roll">Roll Dice!</button>
+                                </td>
+                            </tr>
+
+                         </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+       
+</html>
+
+<script>
+    var actions = {
+        "start": "http://localhost:8080/game/start",
+        "addRoll": "http://localhost:8080/game/addRoll",
+        "diceRoll": "http://localhost:8080/dice"
+    }
+
+
+    document.getElementById('roll').addEventListener('click',()=>rollDie());
+    document.getElementById('newGame').addEventListener('click',()=>startGame());
+
+    async function rollDie() {
+        try {
+            let response = await fetch(actions['diceRoll']);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            let turn = await response.json();
+            updateDiceRollDisplay(turn);
+            addRoll(turn);
+        } catch (error) {
+            console.error('Error fetching dice roll:', error);
+        }
+    }
+
+
+    async function addRoll(value) {
+        
+        let promise = await fetch(actions['addRoll']+'?roll='+value)
+        .then( response=>response.json())
+        .then( response=>updateGamePage(response))
+        // http://localhost:8080/game/addRoll?roll=5&donkey=1&apple=no ['roll':5, "donkey":1,]
+    }
+    function updateDiceRollDisplay(value) {
+        document.getElementById('rollValue').innerHTML=value.toString();
+    }
+    async function startGame() {
+        let gameData = await fetch(actions['start'])
+            .then( response=>response.json())
+            .then ( v=>updateGamePage(v))
+    }
+    function updateGamePage(gameData) {
+        document.getElementById('rollTotal_1').innerHTML=gameData.rollTotal_1;
+        document.getElementById('rollTotal_2').innerHTML=gameData.rollTotal_2;
+        
+        document.getElementById('rollCount').innerHTML=gameData.rollCount;
+        document.getElementById('totalTarget').innerHTML=gameData.totalTarget;
+        document.getElementById('gameStatus').innerHTML=gameData.gameStatus;
+    }
+</script>
